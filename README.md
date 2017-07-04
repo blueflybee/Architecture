@@ -1,4 +1,4 @@
-# Archi
+# Architecture
 This repository showcases and compares different architectural patterns that can be used to build Android apps. The exact same sample app is built three times using the following approaches:
 * __Standard Android__: traditional approach with layouts, Activities/Fragments and Model.
 * __MVP__: Model View Presenter.
@@ -45,3 +45,4 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+=======
