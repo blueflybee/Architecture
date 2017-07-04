@@ -50,7 +50,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_marginLeft="5dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:onClick="@{viewModel.onClickSearch}"
+                android:onClick="@{viewModel::onClickSearch}"
                 android:src="@drawable/ic_search_white_36dp"
                 app:visibility="@{viewModel.searchButtonVisibility}"
                 tools:visibility="visible"/>
@@ -63,7 +63,7 @@
                 android:hint="@string/hit_username"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
-                android:onEditorAction="@{viewModel.onSearchAction}"
+                android:onEditorAction="@{viewModel::onSearchAction}"
                 android:textColor="@color/white"
                 android:theme="@style/LightEditText"
                 app:addTextChangedListener="@{viewModel.usernameEditTextWatcher}"/>

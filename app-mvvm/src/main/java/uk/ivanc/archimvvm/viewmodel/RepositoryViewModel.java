@@ -10,14 +10,15 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import uk.ivanc.archimvvm.ArchiApplication;
 import uk.ivanc.archimvvm.R;
-import uk.ivanc.archimvvm.model.GithubService;
+import uk.ivanc.archimvvm.service.GithubService;
 import uk.ivanc.archimvvm.model.Repository;
 import uk.ivanc.archimvvm.model.User;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 
 /**
  * ViewModel for the RepositoryActivity
@@ -28,7 +29,7 @@ public class RepositoryViewModel implements ViewModel {
 
     private Repository repository;
     private Context context;
-    private Subscription subscription;
+    private Disposable mDisposable;
 
     public ObservableField<String> ownerName;
     public ObservableField<String> ownerEmail;
@@ -85,7 +86,9 @@ public class RepositoryViewModel implements ViewModel {
     @Override
     public void destroy() {
         this.context = null;
-        if (subscription != null && !subscription.isUnsubscribed()) subscription.unsubscribe();
+        if (mDisposable != null && !mDisposable.isDisposed()) {
+            mDisposable.dispose();
+        }
     }
 
     @BindingAdapter({"imageUrl"})
@@ -99,12 +102,12 @@ public class RepositoryViewModel implements ViewModel {
     private void loadFullUser(String url) {
         ArchiApplication application = ArchiApplication.get(context);
         GithubService githubService = application.getGithubService();
-        subscription = githubService.userFromUrl(url)
+        mDisposable = githubService.userFromUrl(url)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(application.defaultSubscribeScheduler())
-                .subscribe(new Action1<User>() {
+                .subscribe(new Consumer<User>() {
                     @Override
-                    public void call(User user) {
+                    public void accept(User user) {
                         Log.i(TAG, "Full user data loaded " + user);
                         ownerName.set(user.name);
                         ownerEmail.set(user.email);

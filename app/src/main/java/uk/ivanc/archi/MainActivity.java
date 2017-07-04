@@ -18,20 +18,22 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.util.List;
-
-import retrofit2.adapter.rxjava.HttpException;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import uk.ivanc.archi.model.GithubService;
 import uk.ivanc.archi.model.Repository;
+
+import java.util.List;
+
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import retrofit2.adapter.rxjava2.HttpException;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    private Subscription subscription;
+    //    private Subscription subscription;
+    private Disposable mDisposable;
     private RecyclerView reposRecycleView;
     private Toolbar toolbar;
     private EditText editTextUsername;
@@ -78,7 +80,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (subscription != null) subscription.unsubscribe();
+        if (mDisposable != null) {
+            mDisposable.dispose();
+        }
     }
 
     public void loadGithubRepos(String username) {
@@ -87,21 +91,22 @@ public class MainActivity extends AppCompatActivity {
         infoTextView.setVisibility(View.GONE);
         ArchiApplication application = ArchiApplication.get(this);
         GithubService githubService = application.getGithubService();
-        subscription = githubService.publicRepositories(username)
+        githubService.publicRepositories(username)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(application.defaultSubscribeScheduler())
-                .subscribe(new Subscriber<List<Repository>>() {
+                .subscribe(new Observer<List<Repository>>() {
                     @Override
-                    public void onCompleted() {
-                        progressBar.setVisibility(View.GONE);
-                        if (reposRecycleView.getAdapter().getItemCount() > 0) {
-                            reposRecycleView.requestFocus();
-                            hideSoftKeyboard();
-                            reposRecycleView.setVisibility(View.VISIBLE);
-                        } else {
-                            infoTextView.setText(R.string.text_empty_repos);
-                            infoTextView.setVisibility(View.VISIBLE);
-                        }
+                    public void onSubscribe(Disposable d) {
+                        mDisposable = d;
+                    }
+
+                    @Override
+                    public void onNext(List<Repository> repositories) {
+                        Log.i(TAG, "Repos loaded " + repositories);
+                        RepositoryAdapter adapter =
+                                (RepositoryAdapter) reposRecycleView.getAdapter();
+                        adapter.setRepositories(repositories);
+                        adapter.notifyDataSetChanged();
                     }
 
                     @Override
@@ -118,12 +123,16 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onNext(List<Repository> repositories) {
-                        Log.i(TAG, "Repos loaded " + repositories);
-                        RepositoryAdapter adapter =
-                                (RepositoryAdapter) reposRecycleView.getAdapter();
-                        adapter.setRepositories(repositories);
-                        adapter.notifyDataSetChanged();
+                    public void onComplete() {
+                        progressBar.setVisibility(View.GONE);
+                        if (reposRecycleView.getAdapter().getItemCount() > 0) {
+                            reposRecycleView.requestFocus();
+                            hideSoftKeyboard();
+                            reposRecycleView.setVisibility(View.VISIBLE);
+                        } else {
+                            infoTextView.setText(R.string.text_empty_repos);
+                            infoTextView.setVisibility(View.VISIBLE);
+                        }
                     }
                 });
     }

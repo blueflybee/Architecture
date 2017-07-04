@@ -1,4 +1,4 @@
-package uk.ivanc.archimvp.view;
+package uk.ivanc.archimvp.ui;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -17,12 +17,13 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.util.List;
-
 import uk.ivanc.archimvp.R;
 import uk.ivanc.archimvp.RepositoryAdapter;
 import uk.ivanc.archimvp.model.Repository;
 import uk.ivanc.archimvp.presenter.MainPresenter;
+import uk.ivanc.archimvp.view.MainMvpView;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MainMvpView {
 

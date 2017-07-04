@@ -1,4 +1,4 @@
-package uk.ivanc.archimvp.view;
+package uk.ivanc.archimvp.ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +16,7 @@ import uk.ivanc.archimvp.R;
 import uk.ivanc.archimvp.model.Repository;
 import uk.ivanc.archimvp.model.User;
 import uk.ivanc.archimvp.presenter.RepositoryPresenter;
+import uk.ivanc.archimvp.view.RepositoryMvpView;
 
 public class RepositoryActivity extends AppCompatActivity implements RepositoryMvpView {
 

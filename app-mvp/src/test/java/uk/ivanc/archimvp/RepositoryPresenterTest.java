@@ -8,13 +8,14 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import rx.Observable;
-import rx.schedulers.Schedulers;
-import uk.ivanc.archimvp.model.GithubService;
+import uk.ivanc.archimvp.service.GithubService;
 import uk.ivanc.archimvp.model.User;
 import uk.ivanc.archimvp.presenter.RepositoryPresenter;
 import uk.ivanc.archimvp.util.MockModelFabric;
 import uk.ivanc.archimvp.view.RepositoryMvpView;
+
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,7 +36,7 @@ public class RepositoryPresenterTest {
         application.setGithubService(githubService);
         // Change the default subscribe schedulers so all observables
         // will now run on the same thread
-        application.setDefaultSubscribeScheduler(Schedulers.immediate());
+        application.setDefaultSubscribeScheduler(Schedulers.trampoline());
         repositoryPresenter = new RepositoryPresenter();
         repositoryMvpView = mock(RepositoryMvpView.class);
         when(repositoryMvpView.getContext()).thenReturn(application);

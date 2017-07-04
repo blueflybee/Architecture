@@ -8,14 +8,17 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.inputmethod.InputMethodManager;
 
-import java.util.List;
-
 import uk.ivanc.archimvvm.R;
 import uk.ivanc.archimvvm.RepositoryAdapter;
 import uk.ivanc.archimvvm.databinding.MainActivityBinding;
 import uk.ivanc.archimvvm.model.Repository;
 import uk.ivanc.archimvvm.viewmodel.MainViewModel;
 
+import java.util.List;
+
+/**
+ * http://connorlin.github.io/2016/07/02/Android-Data-Binding-%E7%B3%BB%E5%88%97-%E4%B8%80-%E8%AF%A6%E7%BB%86%E4%BB%8B%E7%BB%8D%E4%B8%8E%E4%BD%BF%E7%94%A8/
+ */
 public class MainActivity extends AppCompatActivity implements MainViewModel.DataListener {
 
     private MainActivityBinding binding;

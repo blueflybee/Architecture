@@ -13,12 +13,13 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import uk.ivanc.archi.model.GithubService;
 import uk.ivanc.archi.model.Repository;
 import uk.ivanc.archi.model.User;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 
 public class RepositoryActivity extends AppCompatActivity {
 
@@ -36,7 +37,8 @@ public class RepositoryActivity extends AppCompatActivity {
     private ImageView ownerImage;
     private View ownerLayout;
 
-    private Subscription subscription;
+//    private Subscription subscription;
+    private Disposable mDisposable;
 
     public static Intent newIntent(Context context, Repository repository) {
         Intent intent = new Intent(context, RepositoryActivity.class);
@@ -73,7 +75,9 @@ public class RepositoryActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (subscription != null) subscription.unsubscribe();
+        if (mDisposable!=null){
+            mDisposable.dispose();
+        }
     }
 
     private void bindRepositoryData(final Repository repository) {
@@ -103,12 +107,12 @@ public class RepositoryActivity extends AppCompatActivity {
     private void loadFullUser(String url) {
         ArchiApplication application = ArchiApplication.get(this);
         GithubService githubService = application.getGithubService();
-        subscription = githubService.userFromUrl(url)
+        mDisposable = githubService.userFromUrl(url)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(application.defaultSubscribeScheduler())
-                .subscribe(new Action1<User>() {
+                .subscribe(new Consumer<User>() {
                     @Override
-                    public void call(User user) {
+                    public void accept(User user) throws Exception {
                         Log.i(TAG, "Full user data loaded " + user);
                         bindOwnerData(user);
                         ownerLayout.setVisibility(View.VISIBLE);

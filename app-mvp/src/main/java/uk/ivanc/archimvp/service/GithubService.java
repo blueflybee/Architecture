@@ -1,14 +1,17 @@
-package uk.ivanc.archimvvm.model;
+package uk.ivanc.archimvp.service;
+
+import uk.ivanc.archimvp.model.Repository;
+import uk.ivanc.archimvp.model.User;
 
 import java.util.List;
 
+import io.reactivex.Observable;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Url;
-import rx.Observable;
 
 public interface GithubService {
 
@@ -24,7 +27,7 @@ public interface GithubService {
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl("https://api.github.com/")
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .build();
             return retrofit.create(GithubService.class);
         }

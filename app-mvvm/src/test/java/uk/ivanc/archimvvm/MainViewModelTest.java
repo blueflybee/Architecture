@@ -11,18 +11,19 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import uk.ivanc.archimvvm.model.Repository;
+import uk.ivanc.archimvvm.service.GithubService;
+import uk.ivanc.archimvvm.util.MockModelFabric;
+import uk.ivanc.archimvvm.viewmodel.MainViewModel;
+
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
+import retrofit2.HttpException;
 import retrofit2.Response;
-import retrofit2.adapter.rxjava.HttpException;
-import rx.Observable;
-import rx.schedulers.Schedulers;
-import uk.ivanc.archimvvm.model.GithubService;
-import uk.ivanc.archimvvm.model.Repository;
-import uk.ivanc.archimvvm.util.MockModelFabric;
-import uk.ivanc.archimvvm.viewmodel.MainViewModel;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyListOf;
@@ -50,20 +51,25 @@ public class MainViewModelTest {
         application.setGithubService(githubService);
         // Change the default subscribe schedulers so all observables
         // will now run on the same thread
-        application.setDefaultSubscribeScheduler(Schedulers.immediate());
+        application.setDefaultSubscribeScheduler(Schedulers.trampoline());
         mainViewModel = new MainViewModel(application, dataListener);
     }
 
 
     @Test
     public void shouldSearchUsernameWithRepos() {
+        // given:
         String username = "usernameWithRepos";
         TextView textView = new TextView(application);
         textView.setText(username);
         List<Repository> mockRepos = MockModelFabric.newListOfRepositories(10);
-        doReturn(rx.Observable.just(mockRepos)).when(githubService).publicRepositories(username);
+
+        // when:
+        doReturn(Observable.just(mockRepos)).when(githubService).publicRepositories(username);
 
         mainViewModel.onSearchAction(textView, EditorInfo.IME_ACTION_SEARCH, null);
+
+        // then:
         verify(dataListener).onRepositoriesChanged(mockRepos);
         assertEquals(mainViewModel.infoMessageVisibility.get(), View.INVISIBLE);
         assertEquals(mainViewModel.progressVisibility.get(), View.INVISIBLE);
@@ -72,15 +78,20 @@ public class MainViewModelTest {
 
     @Test
     public void shouldSearchInvalidUsername() {
+        // given:
         String username = "invalidUsername";
         TextView textView = new TextView(application);
         textView.setText(username);
         HttpException mockHttpException =
                 new HttpException(Response.error(404, mock(ResponseBody.class)));
+
+        // when:
         when(githubService.publicRepositories(username))
                 .thenReturn(Observable.<List<Repository>>error(mockHttpException));
 
         mainViewModel.onSearchAction(textView, EditorInfo.IME_ACTION_SEARCH, null);
+
+        // then:
         verify(dataListener, never()).onRepositoriesChanged(anyListOf(Repository.class));
         assertEquals(mainViewModel.infoMessage.get(),
                 application.getString(R.string.error_username_not_found));
@@ -91,13 +102,18 @@ public class MainViewModelTest {
 
     @Test
     public void shouldSearchUsernameWithNoRepos() {
+        // given:
         String username = "usernameWithoutRepos";
         TextView textView = new TextView(application);
         textView.setText(username);
+
+        // when:
         when(githubService.publicRepositories(username))
                 .thenReturn(Observable.just(Collections.<Repository>emptyList()));
 
         mainViewModel.onSearchAction(textView, EditorInfo.IME_ACTION_SEARCH, null);
+
+        // then:
         verify(dataListener).onRepositoriesChanged(Collections.<Repository>emptyList());
         assertEquals(mainViewModel.infoMessage.get(),
                 application.getString(R.string.text_empty_repos));

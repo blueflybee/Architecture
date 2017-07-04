@@ -2,24 +2,25 @@ package uk.ivanc.archimvp.presenter;
 
 import android.util.Log;
 
-import java.util.List;
-
-import retrofit2.adapter.rxjava.HttpException;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import uk.ivanc.archimvp.ArchiApplication;
 import uk.ivanc.archimvp.R;
-import uk.ivanc.archimvp.model.GithubService;
+import uk.ivanc.archimvp.service.GithubService;
 import uk.ivanc.archimvp.model.Repository;
 import uk.ivanc.archimvp.view.MainMvpView;
+
+import java.util.List;
+
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import retrofit2.HttpException;
 
 public class MainPresenter implements Presenter<MainMvpView> {
 
     public static String TAG = "MainPresenter";
 
     private MainMvpView mainMvpView;
-    private Subscription subscription;
+    private Disposable mDisposable;
     private List<Repository> repositories;
 
     @Override
@@ -30,7 +31,9 @@ public class MainPresenter implements Presenter<MainMvpView> {
     @Override
     public void detachView() {
         this.mainMvpView = null;
-        if (subscription != null) subscription.unsubscribe();
+        if (mDisposable != null) {
+            mDisposable.dispose();
+        }
     }
 
     public void loadRepositories(String usernameEntered) {
@@ -38,15 +41,23 @@ public class MainPresenter implements Presenter<MainMvpView> {
         if (username.isEmpty()) return;
 
         mainMvpView.showProgressIndicator();
-        if (subscription != null) subscription.unsubscribe();
+        if (mDisposable != null) {
+            mDisposable.dispose();
+        }
         ArchiApplication application = ArchiApplication.get(mainMvpView.getContext());
         GithubService githubService = application.getGithubService();
-        subscription = githubService.publicRepositories(username)
+        githubService.publicRepositories(username)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(application.defaultSubscribeScheduler())
-                .subscribe(new Subscriber<List<Repository>>() {
+                .subscribe(new Observer<List<Repository>>() {
+
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+                        mDisposable = d;
+                    }
+
+                    @Override
+                    public void onComplete() {
                         Log.i(TAG, "Repos loaded " + repositories);
                         if (!repositories.isEmpty()) {
                             mainMvpView.showRepositories(repositories);

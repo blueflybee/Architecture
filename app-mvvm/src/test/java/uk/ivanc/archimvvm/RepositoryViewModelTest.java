@@ -9,13 +9,14 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import rx.Observable;
-import rx.schedulers.Schedulers;
-import uk.ivanc.archimvvm.model.GithubService;
+import uk.ivanc.archimvvm.service.GithubService;
 import uk.ivanc.archimvvm.model.Repository;
 import uk.ivanc.archimvvm.model.User;
 import uk.ivanc.archimvvm.util.MockModelFabric;
 import uk.ivanc.archimvvm.viewmodel.RepositoryViewModel;
+
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -39,7 +40,7 @@ public class RepositoryViewModelTest {
         application.setGithubService(githubService);
         // Change the default subscribe schedulers so all observables
         // will now run on the same thread
-        application.setDefaultSubscribeScheduler(Schedulers.immediate());
+        application.setDefaultSubscribeScheduler(Schedulers.io());
         // Default behaviour is to load a mock owner when the view model is instantiated
         repository = MockModelFabric.newRepository("Repository");
         owner = MockModelFabric.newUser("owner");

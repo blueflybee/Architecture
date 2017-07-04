@@ -3,9 +3,10 @@ package uk.ivanc.archi;
 import android.app.Application;
 import android.content.Context;
 
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 import uk.ivanc.archi.model.GithubService;
+
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
 
 public class ArchiApplication extends Application {
 

@@ -11,16 +11,17 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
-import java.util.List;
-
-import retrofit2.adapter.rxjava.HttpException;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import uk.ivanc.archimvvm.ArchiApplication;
 import uk.ivanc.archimvvm.R;
-import uk.ivanc.archimvvm.model.GithubService;
 import uk.ivanc.archimvvm.model.Repository;
+import uk.ivanc.archimvvm.service.GithubService;
+
+import java.util.List;
+
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import retrofit2.HttpException;
 
 /**
  * View model for the MainActivity
@@ -36,7 +37,7 @@ public class MainViewModel implements ViewModel {
     public ObservableField<String> infoMessage;
 
     private Context context;
-    private Subscription subscription;
+    private Disposable mDisposable;
     private List<Repository> repositories;
     private DataListener dataListener;
     private String editTextUsernameValue;
@@ -57,8 +58,10 @@ public class MainViewModel implements ViewModel {
 
     @Override
     public void destroy() {
-        if (subscription != null && !subscription.isUnsubscribed()) subscription.unsubscribe();
-        subscription = null;
+        if (mDisposable != null && !mDisposable.isDisposed()) {
+            mDisposable.dispose();
+        }
+        mDisposable = null;
         context = null;
         dataListener = null;
     }
@@ -100,15 +103,23 @@ public class MainViewModel implements ViewModel {
         progressVisibility.set(View.VISIBLE);
         recyclerViewVisibility.set(View.INVISIBLE);
         infoMessageVisibility.set(View.INVISIBLE);
-        if (subscription != null && !subscription.isUnsubscribed()) subscription.unsubscribe();
+        if (mDisposable != null && !mDisposable.isDisposed()) {
+            mDisposable.dispose();
+        }
         ArchiApplication application = ArchiApplication.get(context);
         GithubService githubService = application.getGithubService();
-        subscription = githubService.publicRepositories(username)
+        githubService.publicRepositories(username)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(application.defaultSubscribeScheduler())
-                .subscribe(new Subscriber<List<Repository>>() {
+                .subscribe(new Observer<List<Repository>>() {
+
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(Disposable d) {
+                        mDisposable = d;
+                    }
+
+                    @Override
+                    public void onComplete() {
                         if (dataListener != null) dataListener.onRepositoriesChanged(repositories);
                         progressVisibility.set(View.INVISIBLE);
                         if (!repositories.isEmpty()) {
